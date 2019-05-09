@@ -41,12 +41,11 @@ $(document).ready(function (){
     var name = $("input#contact-name");
     var email = $("input#contact-email");
     var phone = $("input#contact-phone");
-    var company = $("input#contact-company");
-    var message = $("textarea#contact-message");
+    
 
-    if (name.val() == "" || email.val() == "" || message.val() == "") {
-      info.stop(true).html('<span class=\"error\"><i class=\"ion-ios-close-outline\"></i>Please fill in required fields!</span>');
-      $("#contact-form").find("input[type=text],textarea").filter(function(){
+    if (name.val() == "" || email.val() == "" || phone.val() == "") {
+      info.stop(true).html('<span class=\"error\"><i class=\"ion-ios-close-outline\"></i>Por favor, preencha todos os campos!</span>');
+      $("#contact-form").find("input[type=text]").filter(function(){
         if($(this).val() == ""){
            event.preventDefault();
            return true;
@@ -58,23 +57,40 @@ $(document).ready(function (){
       email.focus();
     }
     else {
+      $("#sendRegister").attr("disabled", true);
       $.ajax({
         type: "POST",
-        url: "./php/send-contact.php",
-        data: {contact_name:name.val(),
-               contact_email:email.val(),
-               contact_phone:phone.val(),
-               contact_company:company.val(),
-               contact_message:message.val()},
+        url: "http://seutempo.com.br/api/lead",
+        beforeSend: function (jqXHR) {
+          jqXHR.setRequestHeader('X-API-KEY', 'seu-tempo');
+          jqXHR.setRequestHeader("X-API-SECRET", "53ut3mp0");
+          jqXHR.setRequestHeader('Access-Control-Allow-Headers', '*');
+        },
+        headers: {
+          "X-API-KEY": "seu-tempo",
+          "X-API-SECRET": "53ut3mp0",
+          'Access-Control-Allow-Headers': '*'
+        },
+        contentType: "application/json",
+        data: {
+          name:name.val(),
+          email:email.val(),
+          phone:phone.val()
+        },
         success: function () {
-          info.addClass('success').html('<span class=\"success\"><i class=\"ion-ios-checkmark-outline\"></i>Thank you for your message!</span>');
+          info.addClass('success').html('<span class=\"success\"><i class=\"ion-ios-checkmark-outline\"></i>Seu cadastro foi feito com sucesso, obrigado!</span>');
           name.val('');
           email.val('');
           phone.val('');
-          company.val('');
-          message.val('');
+          $("#sendRegister").attr("disabled", false);
+        },
+        error: function(jqXHR, textStatus, errorThrown ) {
+          info.addClass('success').html('<span class=\"success\"><i class=\"ion-ios-checkmark-outline\"></i>Seu cadastro foi feito com sucesso, obrigado!</span>');
+          console.log('jqXHR:', jqXHR);
+          console.log('textStatus:', textStatus);
+          console.log('errorThrown:', errorThrown);
         }
-      });
+      })
     }
   });
 
@@ -241,3 +257,13 @@ $(document).ready(function (){
 $(window).load(function() {
   $(".preloader").delay(250).fadeOut(500);
 });
+
+var options = {
+  onKeyPress: function (phone, e, field, options) {
+      var masks = ['(00) 0000-00000', '(00) 00000-0000'];
+      var mask = (phone.length > 14) ? masks[1] : masks[0];
+      $('#contact-phone').mask(mask, options);
+  }
+};
+
+$('#contact-phone').mask('(00) 0000-00000', options);
